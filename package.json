@@ -6,14 +6,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon server.js",
-    "dev":"nodemon server.js"
+    "dev": "nodemon server.js"
   },
   "author": "Harish Kunwar",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.4.3",
     "express": "^4.18.2",
-    "mongoose": "^8.1.2"
+    "mongoose": "^8.1.2",
+    "validator": "^13.11.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"
