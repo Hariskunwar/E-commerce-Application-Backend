@@ -1,5 +1,6 @@
 const mongoose=require("mongoose");
 const validator=require("validator");
+const bcrypt=require("bcrypt");
 
 const userSchema=new mongoose.Schema({
     name:{
@@ -9,16 +10,15 @@ const userSchema=new mongoose.Schema({
     email:{
         type:String,
         required:[true,"Please enter your email"],
-        unique:[true,"User with this email already exist"],
+        unique: true,
         validate:[validator.isEmail,"Please enter a valid email"]
     },
    
     mobile:{
         type:String,
         required:[true,"Please enter your phone number"],
-        unique:[true,"User with this phone number already exist"],
-        
-    },
+        unique: true,
+        },
     photo:{
         type:String,
         default:"https://i.stack.imgur.com/l60Hf.png"
@@ -26,12 +26,28 @@ const userSchema=new mongoose.Schema({
     password:{
         type:String,
         required:[true,"Please enter password"],
-        minlength:6
+        minlength:6,
+        select:false
     },
     confirmPassword:{
         type:String,
-        required:[true,"Please confirm your password"]
+        required:[true,"Please confirm your password"],
+        validate:{
+            validator:function(val){
+               return val==this.password;
+            },
+            message:"password and confirm password does not match"
+        }
     },
-},{timestamps:true})
+},{timestamps:true});
+
+userSchema.pre('save',async function(next){
+    if(!this.isModified("password")){
+        return next();
+    }
+    this.password=await bcrypt.hash(this.password,10);
+    this.confirmPassword=undefined;
+    next();
+})
 
 module.exports=mongoose.model("User",userSchema);
