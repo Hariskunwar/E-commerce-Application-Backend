@@ -1,5 +1,5 @@
 {
-  "name": "e-comerce-application-backend",
+  "name": "e-commerce-application-backend",
   "version": "1.0.0",
   "description": "E-commerce application backend using node, express, mongodb",
   "main": "server.js",
