@@ -1,0 +1,67 @@
+const CustomError=require("../utils/CustomError");
+
+const developmentErrors=(res,error)=>{
+    res.status(error.statusCode).json({
+        status:error.status,
+        message:error.message,
+        stackTrace:error.stack,
+        error:error
+    })
+}
+
+const productionErrors=(res,error)=>{
+    if(error.isOperational){
+        res.status(error.statusCode).json({
+            status:error.status,
+            message:error.message
+        })
+    }else{
+        res.status(500).json({
+            status:"error",
+            message:"Something went wrong, please try later"
+        })
+    }
+}
+
+const castErrorHandler=(error)=>{
+    const msg=`Invalid value for ${error.path} : ${error.value}`;
+    return new CustomError(msg,400);
+}
+
+const duplicateKeyErrorHandler=(error)=>{
+    if(error.keyValue.email){
+        const msg=`There is already a user with email ${error.keyValue.email}`;
+        return new CustomError(msg,400);
+    }
+    else if(error.keyValue.mobile){
+        const msg=`There is already a user with mobile ${error.keyValue.mobile}`;
+        return new CustomError(msg,400);
+    }
+}
+
+const validationErrorHandler=(error)=>{
+    const errors=Object.values(error.errors).map(val=>val.message);
+    const errorMessage=errors.join('. ');
+    const msg=`Invalid input data : ${errorMessage}`;
+    return new CustomError(msg,400);
+}
+
+module.exports=(error,req,res,next)=>{
+    error.statusCode=error.statusCode||500;
+    error.status=error.status||"error";
+    if(process.env.NODE_ENV==="development"){
+        developmentErrors(res,error);
+    }
+    else if(process.env.NODE_ENV==="production"){
+        if(error.name==="CastError"){
+            error=castErrorHandler(error)
+        }
+        if(error.code===11000){
+            error=duplicateKeyErrorHandler(error);
+        }
+        if(error.name==='ValidationError'){
+            error=validationErrorHandler(error);
+        }
+        productionErrors(res,error)
+    }
+}

@@ -1,5 +1,6 @@
 const User=require("../models/userModel");
 const jwt=require("jsonwebtoken");
+const asyncErrorHandler=require("../utils/asyncErrorHandler");
 
 const signToken=(id)=>{
     return jwt.sign({id:id},process.env.SECRET_STR,{
@@ -8,10 +9,8 @@ const signToken=(id)=>{
 }
 
 //user registeration
-exports.signup=async (req,res)=>{
-    try {
-        
-        const newUser=await User.create(req.body);
+exports.signup=asyncErrorHandler(async (req,res,next)=>{
+       const newUser=await User.create(req.body);
         const token=signToken(newUser._id);
 
         res.status(201).json({
@@ -21,11 +20,5 @@ exports.signup=async (req,res)=>{
                 user:newUser
             }
         })
-    } catch (error) {
-        res.status(500).json({
-            status:"error",
-            error:error
-        })
-    }
-}
+    })
 
