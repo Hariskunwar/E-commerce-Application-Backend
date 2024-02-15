@@ -48,6 +48,11 @@ userSchema.pre('save',async function(next){
     this.password=await bcrypt.hash(this.password,10);
     this.confirmPassword=undefined;
     next();
-})
+});
+
+userSchema.methods.comparePassword=async function(userEnteredPwd,dbPassword){
+    return bcrypt.compare(userEnteredPwd,dbPassword);
+}
+
 
 module.exports=mongoose.model("User",userSchema);
