@@ -2,6 +2,7 @@ const User=require("../models/userModel");
 const jwt=require("jsonwebtoken");
 const asyncErrorHandler=require("../utils/asyncErrorHandler");
 const CustomError=require("../utils/CustomError");
+const util=require('util');
 
 const signToken=(id)=>{
     return jwt.sign({id:id},process.env.SECRET_STR,{
@@ -37,4 +38,37 @@ exports.login=asyncErrorHandler(async (req,res,next)=>{
         token
     })
 
+})
+
+//authorization middleware
+exports.protect=asyncErrorHandler(async (req,res,next)=>{
+    //read token and check if it exist
+    const authHeader=req.headers.authorization;
+    let token;
+    if(authHeader && authHeader.startsWith("Bearer")){
+        token=authHeader.split(" ")[1];
+    }
+    if(!token){
+        const err=new CustomError("You are not logged in",401);
+        return next(err); 
+    }
+    //validate the token
+    const decoded=await util.promisify(jwt.verify)(token,process.env.SECRET_STR);
+
+    //check user still exist in database or not
+    const user=await User.findById(decoded.id);
+    if(!user){
+        const err=new CustomError("User with given token does not exist",401);
+        return next(err); 
+    }
+    //check if user changed password after token issued or not
+    if(await user.isPasswordChanged(decoded.iat)){
+        const err=new CustomError("Password was changed, please login again",401);
+        return next(err); 
+    }
+
+    //attach user with request object
+    req.user=user;
+    next();
+    //console.log(decoded);
 })
