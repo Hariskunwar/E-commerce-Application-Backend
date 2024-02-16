@@ -1,10 +1,10 @@
 const express=require("express");
 const { getSingleUser, getAllUser } = require("../controllers/userController");
-const { protect } = require("../controllers/authController");
+const { protect, restrict } = require("../controllers/authController");
 
 const router=express.Router();
 
-router.route("/").get(protect,getAllUser);
-router.route("/:id").get(protect,getSingleUser);
+router.route("/").get(protect,restrict('admin'),getAllUser);
+router.route("/:id").get(protect,restrict('admin'),getSingleUser);
 
 module.exports=router;

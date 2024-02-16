@@ -72,3 +72,15 @@ exports.protect=asyncErrorHandler(async (req,res,next)=>{
     next();
     //console.log(decoded);
 })
+
+
+//user role and permission
+exports.restrict=(...role)=>{
+    return (req,res,next)=>{
+        if(!role.includes(req.user.role)){
+        const err=new CustomError('You have not permission',403)
+        return next(err);
+        }
+        next()
+    }
+}

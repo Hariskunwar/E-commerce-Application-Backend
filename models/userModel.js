@@ -39,7 +39,12 @@ const userSchema=new mongoose.Schema({
             message:"password and confirm password does not match"
         }
     },
-    passwordChangedAt:Date
+    passwordChangedAt:Date,
+    role:{
+        type:String,
+        enum:['user','admin'],
+        default:"user"
+    }
 },{timestamps:true});
 
 userSchema.pre('save',async function(next){
