@@ -79,3 +79,12 @@ exports.getSingleUser=asyncErrorHandler(async (req,res,next)=>{
             }
         })
     })
+
+    //user deleting own account 
+    exports.deleteMe=asyncErrorHandler(async (req,res,next)=>{
+        await User.findByIdAndDelete(req.user._id);
+            res.status(204).json({
+                status: 'success',
+                data: null
+            });
+        });
