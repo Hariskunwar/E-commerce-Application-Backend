@@ -54,3 +54,28 @@ exports.getSingleUser=asyncErrorHandler(async (req,res,next)=>{
             }
         })
     })
+
+    //user updating own account
+    const filterReqObj=(obj,...allowedFields)=>{
+        const newObj={};
+        Object.keys(obj).forEach(prop=>{
+            if(allowedFields.includes(prop)){
+                newObj[prop]=obj[prop]
+            }
+        })
+        return newObj;
+    }
+    exports.updateMe=asyncErrorHandler(async (req,res,next)=>{
+        if(req.body.password||req.body.confirmPassword){
+            const error=new CustomError("You cannot change your password using this endpoint",400);
+            return next(error);
+        }
+        const filterObj=filterReqObj(req.body,"email","name","mobile","photo");
+        const updatedUser=await User.findByIdAndUpdate(req.user._id,filterObj,{new:true,runValidators:true});
+        res.status(200).json({
+            status:"success",
+            data:{
+                user:updatedUser
+            }
+        })
+    })
