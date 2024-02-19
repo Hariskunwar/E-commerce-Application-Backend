@@ -2,4 +2,5 @@ const multer=require("multer");
 
 const storage=multer.memoryStorage();
 
-exports.profileUploader=multer({storage:storage}).single('profile');
+exports.photoUploader=multer({storage:storage}).single('image');
+
