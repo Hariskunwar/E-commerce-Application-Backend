@@ -2,6 +2,8 @@ const User=require("../models/userModel");
 const asyncErrorHandler=require("../utils/asyncErrorHandler");
 const CustomError=require("../utils/CustomError");
 const jwt=require("jsonwebtoken");
+const { dataUri } = require("../utils/photouri");
+const cloudinary=require("cloudinary");
 
 
 //admin get all users
@@ -87,4 +89,26 @@ exports.getSingleUser=asyncErrorHandler(async (req,res,next)=>{
                 status: 'success',
                 data: null
             });
+        });
+
+        //uplaod profile
+        exports.uploadProfilePhoto=asyncErrorHandler(async (req,res,next)=>{
+            
+            const user=await User.findById(req.user._id);
+            //get product photo
+            const profile=dataUri(req.file);
+            //delete previous photo
+            await cloudinary.v2.uploader.destroy(user.photo.public_id);
+            //update with new photo
+            const cloudDb=await cloudinary.v2.uploader.upload(profile.content);
+            user.photo={
+                public_id:cloudDb.public_id,
+                url:cloudDb.secure_url
+            };
+            await user.save({validateBeforeSave:false});
+            res.status(200).json({
+                status:"success",
+                message:"profile picture updated"
+            });
+
         });
