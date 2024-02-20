@@ -94,5 +94,43 @@ exports.createProduct=asyncErrorHandler(async (req,res,next)=>{
         data:{
           product
         }
-      })
-    })
+      });
+    });
+
+    //update product
+    exports.updateProduct=asyncErrorHandler(async (req,res,next)=>{
+     
+      const updatedProduct=await Product.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators:true});
+      if(!updatedProduct){
+        return next(new CustomError("product not found",400))
+      }
+      res.status(200).json({
+        status:"success",
+        data:{
+          product:updatedProduct
+        }
+      });
+    });
+
+    exports.updateProductImage=asyncErrorHandler(async (req,res,next)=>{
+      let product=await Product.findById(req.params.id);
+      if(!product){
+        return next(new CustomError("Product not found",404));
+      }
+      if(!req.file){
+        return next(new CustomError("Please provide product image",40));
+      }
+      const file=dataUri(req.file);
+      const cloudDb=await cloudinary.v2.uploader.upload(file.content);
+      const image={
+        public_id:cloudDb.public_id,
+        url:cloudDb.secure_url
+      }
+    
+     product=await Product.findByIdAndUpdate(req.params.id,{$push:{images:image}},{new:true})
+     
+      res.status(200).json({
+        status:"success",
+        updatedProduct:product
+      });
+    });
