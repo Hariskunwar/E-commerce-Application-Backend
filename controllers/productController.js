@@ -82,3 +82,17 @@ exports.createProduct=asyncErrorHandler(async (req,res,next)=>{
         }
       });
     });
+
+    //get single product
+    exports.getSingleProduct=asyncErrorHandler(async (req,res,next)=>{
+      const product=await Product.findById(req.params.id);
+      if(!product){
+        return next(new CustomError("Product not found",404))
+      }
+      res.status(200).json({
+        status:"success",
+        data:{
+          product
+        }
+      })
+    })
