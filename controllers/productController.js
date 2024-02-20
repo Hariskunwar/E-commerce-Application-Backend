@@ -134,3 +134,49 @@ exports.createProduct=asyncErrorHandler(async (req,res,next)=>{
         updatedProduct:product
       });
     });
+
+    //delete product image from database and cloudinary
+    exports.deleteProductImage=asyncErrorHandler(async (req,res,next)=>{
+      let product=await Product.findById(req.params.id);
+      if(!product){
+        return next(new CustomError("Product not found",404));
+      }
+      let id=req.query.id;
+      //find image index
+      let imageIndex=-1;
+      product.images.forEach((item,index)=>{
+          if(item._id.toString()===id.toString()){
+            imageIndex=index;
+          }
+      })
+      if(imageIndex<0){
+        return next(new CustomError("image not found",404));
+      }
+      //delete image from cloudinary
+      await cloudinary.v2.uploader.destroy(product.images[imageIndex].public_id);
+     // remove from database
+     product=await Product.findByIdAndUpdate(req.params.id,{$pull:{images:{_id:id}}},{new:true});
+     res.status(200).json({
+      status:"success",
+      data:{
+        product
+      }
+    });
+    });
+
+    //delete product
+    exports.deleteProduct=asyncErrorHandler(async (req,res,next)=>{
+      const product=await Product.findById(req.params.id);
+      if(!product){
+        return next(new CustomError("Product not found",404));
+      }
+      //first delete product image from cloudinary
+      for(let index=0;index<product.images.length;index++){
+        await cloudinary.v2.uploader.destroy(product.images[index].public_id);
+      }
+      await Product.findByIdAndDelete(req.params.id);
+      res.status(204).json({
+        status:"success",
+        data:null
+      });
+    });
