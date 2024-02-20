@@ -24,3 +24,14 @@ exports.createProduct=asyncErrorHandler(async (req,res,next)=>{
          }
       })
     });
+
+    //get all products
+    exports.getAllProduct=asyncErrorHandler(async (req,res,next)=>{
+      const products=await Product.find();
+      res.status(200).json({
+        status:"success",
+        data:{
+          products
+        }
+      });
+    });
