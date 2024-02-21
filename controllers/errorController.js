@@ -37,6 +37,10 @@ const duplicateKeyErrorHandler=(error)=>{
         const msg=`There is already a user with mobile ${error.keyValue.mobile}`;
         return new CustomError(msg,400);
     }
+    else if(error.keyValue.category){
+        const msg=`There is already a category with title ${error.keyValue.category}`;
+        return new CustomError(msg,400);
+    }
 }
 
 const validationErrorHandler=(error)=>{
