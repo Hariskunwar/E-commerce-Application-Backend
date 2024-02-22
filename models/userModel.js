@@ -52,7 +52,13 @@ const userSchema=new mongoose.Schema({
         default:"user"
     },
     passwordResetToken:String,
-    passwordResetTokenExpires:Date
+    passwordResetTokenExpires:Date,
+    wishlist:[
+        {
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"Product"
+        }
+    ],
 },{timestamps:true});
 
 userSchema.pre('save',async function(next){
