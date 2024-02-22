@@ -180,3 +180,43 @@ exports.createProduct=asyncErrorHandler(async (req,res,next)=>{
         data:null
       });
     });
+
+    //product rating functionality
+    exports.ratings=asyncErrorHandler(async (req,res,next)=>{
+      const pId=req.body.productId;
+       let product=await Product.findById(pId);
+       //check already rated 
+       const alreadyRated=product.ratings.find((rate)=>{
+         return rate.ratedBy.toString()===req.user._id.toString();
+       });
+       if(alreadyRated){
+        product=await Product.updateOne({ratings:{$elemMatch:alreadyRated}},{
+          $set:{'ratings.$.star':req.body.star}
+              },{new:true});
+        }
+       else{ 
+         product=await Product.findByIdAndUpdate(pId,{
+            $push:{
+               ratings:{
+                  star:req.body.star,
+                  ratedBy:req.user._id
+              }
+          }
+        },{new:true});
+      
+      }
+      //average of all rating
+      product=await Product.findById(pId);
+      const totalRate=product.ratings.length;
+      let ratingSum=product.ratings.map((item)=>{
+      return item.star;
+      }).reduce((prev,curr)=>prev+curr,0);
+      const averageRating=Math.round(ratingSum/totalRate);
+      product=await Product.findByIdAndUpdate(pId,{avgRate:averageRating},{new:true});
+      res.status(200).json({
+         status:"success",
+         data:{
+             product
+          }
+        });
+     });
