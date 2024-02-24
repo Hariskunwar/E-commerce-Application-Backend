@@ -2,6 +2,7 @@ const Cart=require("../models/cartModel");
 const Product=require('../models/productModel');
 const asyncErrorHandler=require("../utils/asyncErrorHandler");
 const CustomError=require('../utils/CustomError');
+const Coupon=require("../models/couponModel");
 
 //calculate total cart price
 const calcTotalCartPrice=(cart)=>{
@@ -128,4 +129,31 @@ exports.updateCartProductQuantity=asyncErrorHandler(async (req,res,next) => {
         cart
       },
    });
+});
+
+
+//Apply coupon
+exports.applyCoupon=asyncErrorHandler(async (req,res,next)=>{
+    //get coupon
+    const coupon=await Coupon.findOne({name:req.body.name,expire:{$gt:Date.now()}})
+    if(!coupon){
+        const err=new CustomError('coupon is invalid or expired',404);
+        return next(err);
+    }
+    //get user cart
+    const cart=await Cart.findOne({orderBy:req.user._id});
+    if(!cart){
+        const err=new CustomError('no product in cart',404);
+        return next(err);
+    }
+    const totalPrice=cart.cartTotal;
+    const priceAfterDiscount=(totalPrice-(totalPrice*coupon.discount)/100).toFixed(2);
+    cart.totalAfterDiscount=priceAfterDiscount;
+    await cart.save();
+    res.status(200).json({
+        status:"success",
+        data:{
+            cart
+        }
+    });
 });
